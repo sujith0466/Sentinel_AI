@@ -1,0 +1,30 @@
+{
+  "defaults": {
+    "project": 1,
+    "env": 1
+  },
+  "actives": {
+    "project": 1,
+    "env": 1
+  },
+  "projects": [
+    {
+      "idx": 1,
+      "id": "47090000000013047",
+      "name": "SentinelAI",
+      "domain": {
+        "id": "50042848162",
+        "name": "sentinelai-60073433164.development"
+      },
+      "timezone": "Asia/Kolkata",
+      "env": [
+        {
+          "idx": 1,
+          "id": "60073433164",
+          "name": "Development",
+          "type": 3
+        }
+      ]
+    }
+  ]
+}
