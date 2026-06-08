@@ -17,7 +17,6 @@ const Sidebar = () => {
     { name: 'Security & Governance', path: '/governance', icon: ShieldCheck },
     { name: 'Network Intelligence', path: '/network', icon: Network },
     { name: 'Alerts', path: '/alerts', icon: Bell },
-    { name: 'Intel Briefs', path: '/briefs', icon: FileText },
   ];
 
   return (

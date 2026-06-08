@@ -32,14 +32,24 @@ const InvestigationRoom = () => {
       const res = await analyzeInvestigation(entityType, entityId);
       if (res.error) {
         setTimeline(res.timeline || [{ agent: 'SupervisorAgent', status: 'Failed', message: res.error, time: Date.now() }]);
+        setIsRunning(false);
       } else {
-        setTimeline(res.timeline);
-        setResult(res);
+        let currentIndex = 0;
+        const timelineEvents = res.timeline;
+        const interval = setInterval(() => {
+          if (currentIndex < timelineEvents.length) {
+            setTimeline(timelineEvents.slice(0, currentIndex + 1));
+            currentIndex++;
+          } else {
+            clearInterval(interval);
+            setResult(res);
+            setIsRunning(false);
+          }
+        }, 800);
       }
     } catch (err) {
        setTimeline(prev => [...prev, { agent: 'SupervisorAgent', status: 'Failed', message: 'Network error.', time: Date.now() }]);
-    } finally {
-      setIsRunning(false);
+       setIsRunning(false);
     }
   };
 

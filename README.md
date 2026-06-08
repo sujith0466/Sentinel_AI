@@ -38,7 +38,7 @@ SentinelAI is built as a decoupled, modern web application prioritizing speed, s
 * **Frontend**: React 18, Vite, TailwindCSS, Lucide React, React Router
 * **Backend**: Python 3, Flask, SQLAlchemy, Flask-CORS
 * **Database**: SQLite (Development) -> PostgreSQL Ready (Production)
-* **AI Core**: Google Gemini (`google.generativeai`)
+* **AI Core**: Google Gemini (`google.generativeai`) - *Migrated to `gemini-2.5-flash` for maximum inference speed and quota optimization*
 * **PDF Engine**: `xhtml2pdf`
 
 ---

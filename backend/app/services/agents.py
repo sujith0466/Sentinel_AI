@@ -84,7 +84,7 @@ class SummaryAgent:
     def __init__(self, api_key):
         if api_key and api_key != "your-gemini-api-key":
              genai.configure(api_key=api_key)
-             self.model = genai.GenerativeModel('gemini-2.5-pro', generation_config={"response_mime_type": "application/json"})
+             self.model = genai.GenerativeModel('gemini-2.5-flash', generation_config={"response_mime_type": "application/json"})
         else:
              self.model = None
 
@@ -112,8 +112,12 @@ class SummaryAgent:
         try:
             res = self.model.generate_content(prompt)
             return json.loads(res.text)
-        except Exception:
-            return {"report_markdown": "# Error Generating Report", "recommended_leads": [], "confidence": 0.0}
+        except Exception as e:
+            return {
+                "report_markdown": f"# Brief Generation Failed\n\n**Reason:** {e.__class__.__name__}\n\n**Details:** {str(e)}\n\n**Recommendation:**\nRetry generation after quota refresh.",
+                "recommended_leads": [],
+                "confidence": 0.0
+            }
 
 class SupervisorAgent:
     def __init__(self):
@@ -144,21 +148,6 @@ class SupervisorAgent:
         timeline.append({"agent": "SummaryAgent", "status": "Running", "message": "Compiling Unified Investigation Report...", "time": time.time()})
         sum_data = self.sum_agent.execute(entity_type, inv_data, net_data, prof_data)
         timeline.append({"agent": "SummaryAgent", "status": "Completed", "message": f"Report finalized with {(sum_data.get('confidence', 0)*100):.0f}% confidence.", "time": time.time()})
-
-        # Save to DB
-        try:
-             # Find a system user or first user to own the brief
-             system_user = User.query.first()
-             user_id = system_user.id if system_user else 'system'
-             
-             # If it's a case, link it directly
-             case_id = entity_id if entity_type == 'case' else 'external'
-             
-             brief = IntelligenceBrief(case_id=case_id, generated_by=user_id, status='completed')
-             db.session.add(brief)
-             db.session.commit()
-        except Exception as e:
-             pass # Ignore db errors for brief saving during simulation
 
         return {
             "timeline": timeline,

@@ -77,6 +77,9 @@ class BriefGenerator:
         system_user = User.query.first()
         user_id = system_user.id if system_user else 'system'
         
+        confidence_val = result.get("confidence", 1.0)
+        final_status = 'failed' if confidence_val <= 0 else 'completed'
+
         brief = IntelligenceBrief(
              id=str(uuid.uuid4()),
              case_id=entity_id,
@@ -85,8 +88,8 @@ class BriefGenerator:
              content_markdown=markdown_report,
              audit_trail_json=json.dumps(result.get("raw_data", {})),
              severity=severity,
-             confidence_score=result.get("confidence", 1.0),
-             status='completed'
+             confidence_score=confidence_val,
+             status=final_status
         )
         db.session.add(brief)
         db.session.commit()

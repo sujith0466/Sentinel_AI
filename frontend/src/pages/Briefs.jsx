@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { fetchBriefs, getBriefDownloadUrl } from '../services/api';
-import { FileText, Download, CheckCircle, AlertTriangle, ChevronRight } from 'lucide-react';
+import { FileText, Download, CheckCircle, XCircle, AlertTriangle, ChevronRight } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 
 const Briefs = () => {
@@ -56,7 +56,9 @@ const Briefs = () => {
               <div>
                 <h1 className="text-2xl font-bold">{selectedBrief.title}</h1>
                 <div className="flex items-center gap-4 mt-3">
-                  <span className="flex items-center gap-1 text-xs text-muted"><CheckCircle size={14} className="text-green-500"/> Completed</span>
+                  <span className="flex items-center gap-1 text-xs text-muted">
+                    {selectedBrief.status === 'completed' ? <><CheckCircle size={14} className="text-green-500"/> Completed</> : <><XCircle size={14} className="text-red-500"/> Failed</>}
+                  </span>
                   <span className="flex items-center gap-1 text-xs text-muted"><AlertTriangle size={14} className="text-blue-500"/> Conf: {(selectedBrief.confidence_score * 100).toFixed(0)}%</span>
                   <span className="text-xs text-muted">ID: {selectedBrief.id.substring(0,8)}</span>
                 </div>
@@ -73,7 +75,7 @@ const Briefs = () => {
             
             <div className="flex-1 overflow-y-auto p-8 bg-[#0B1120]">
               <div className="max-w-3xl mx-auto prose prose-invert prose-blue prose-headings:font-bold prose-a:text-blue-400 prose-pre:bg-surface prose-pre:border prose-pre:border-border">
-                <ReactMarkdown>{selectedBrief.content_markdown}</ReactMarkdown>
+                <ReactMarkdown>{selectedBrief.content_markdown || "No intelligence content generated for this brief."}</ReactMarkdown>
               </div>
             </div>
           </>
