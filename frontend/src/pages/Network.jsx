@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef, useCallback } from 'react';
+import { useEffect, useState, useRef, useCallback, useMemo } from 'react';
 import ForceGraph2D from 'react-force-graph-2d';
 import { fetchNetworkGraph } from '../services/api';
 import { Network as NetworkIcon, Search, Filter, ShieldAlert, Zap, Layers, MapPin } from 'lucide-react';
@@ -13,32 +13,81 @@ const NODE_COLORS = {
 
 const Network = () => {
   const fgRef = useRef();
+  const containerRef = useRef();
   const [data, setData] = useState({ nodes: [], links: [] });
   const [associations, setAssociations] = useState([]);
   const [metrics, setMetrics] = useState({});
   const [selectedNode, setSelectedNode] = useState(null);
+  const [dimensions, setDimensions] = useState({ width: 800, height: 600 });
   
   const [searchQuery, setSearchQuery] = useState('');
   const [activeFilters, setActiveFilters] = useState({
     criminal: true, victim: true, case: true, evidence: true, alert: true
   });
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     fetchNetworkGraph().then(res => {
       setData(res.graph);
       setAssociations(res.hidden_associations);
       setMetrics(res.global_metrics);
-    }).catch(console.error);
+      setIsLoading(false);
+    }).catch(err => {
+      console.error(err);
+      setIsLoading(false);
+    });
+  }, []);
+
+  useEffect(() => {
+    if (fgRef.current && !isLoading && data?.nodes?.length) {
+      // Increase graph spread by tuning forces
+      fgRef.current.d3Force('charge').strength(-350);
+      fgRef.current.d3Force('link').distance(100);
+      
+      // Remove center force to prevent graph from compressing into the middle
+      fgRef.current.d3Force('center', null);
+      
+      // Center and zoom after physics settle
+      setTimeout(() => {
+        if (fgRef.current) {
+          fgRef.current.zoomToFit(400, 50);
+          setTimeout(() => {
+            if (fgRef.current) {
+              fgRef.current.zoom(fgRef.current.zoom() * 1.15, 400);
+            }
+          }, 450);
+        }
+      }, 1200);
+    }
+  }, [data, isLoading]);
+
+  useEffect(() => {
+    if (!containerRef.current) return;
+    const observer = new ResizeObserver(entries => {
+      if (entries[0]) {
+        setDimensions({
+          width: entries[0].contentRect.width,
+          height: entries[0].contentRect.height
+        });
+      }
+    });
+    observer.observe(containerRef.current);
+    return () => observer.disconnect();
   }, []);
 
   // Filter Data
-  const filteredData = {
-    nodes: data.nodes.filter(n => activeFilters[n.type]),
-    links: data.links.filter(l => 
-      activeFilters[data.nodes.find(n => n.id === (typeof l.source === 'object' ? l.source.id : l.source))?.type] && 
-      activeFilters[data.nodes.find(n => n.id === (typeof l.target === 'object' ? l.target.id : l.target))?.type]
-    )
-  };
+  const filteredData = useMemo(() => {
+    const nodes = data?.nodes || [];
+    const links = data?.links || [];
+    
+    return {
+      nodes: nodes.filter(n => activeFilters[n.type]),
+      links: links.filter(l => 
+        activeFilters[nodes.find(n => n.id === (typeof l.source === 'object' ? l.source.id : l.source))?.type] && 
+        activeFilters[nodes.find(n => n.id === (typeof l.target === 'object' ? l.target.id : l.target))?.type]
+      )
+    };
+  }, [data, activeFilters]);
 
   const handleNodeClick = useCallback(node => {
     setSelectedNode(node);
@@ -52,11 +101,16 @@ const Network = () => {
 
   const handleSearch = () => {
     if (!searchQuery.trim()) return;
-    const node = data.nodes.find(n => n.label.toLowerCase().includes(searchQuery.toLowerCase()));
+    const nodes = data?.nodes || [];
+    const node = nodes.find(n => n?.label?.toLowerCase().includes(searchQuery.toLowerCase()));
     if (node) {
       handleNodeClick(node);
     }
   };
+
+  if (isLoading) {
+    return <div className="p-8 text-center text-muted">Loading network graph...</div>;
+  }
 
   return (
     <div className="h-[calc(100vh-8rem)] flex gap-4">
@@ -89,7 +143,7 @@ const Network = () => {
           </div>
         </div>
 
-        <div className="flex-1 bg-black/20">
+        <div className="flex-1 bg-black/20 overflow-hidden" ref={containerRef}>
           <ForceGraph2D
             ref={fgRef}
             graphData={filteredData}
@@ -97,13 +151,18 @@ const Network = () => {
             nodeColor={node => NODE_COLORS[node.type] || '#fff'}
             nodeRelSize={6}
             nodeVal={node => (node.influence_score * 10) + 1}
-            linkColor={() => '#334155'}
+            linkColor={() => '#64748b'}
             linkOpacity={0.6}
-            linkWidth={link => link.confidence ? link.confidence * 2 : 1}
+            linkWidth={link => link.confidence ? link.confidence * 3 : 1.5}
             onNodeClick={handleNodeClick}
-            width={800} // Dynamic width handling in production, hardcoded here for simplicity
-            height={600}
-            backgroundColor="#0f172a00" // transparent
+            width={dimensions.width}
+            height={dimensions.height}
+            enableNodeDrag={true}
+            enableZoomInteraction={true}
+            enablePanInteraction={true}
+            d3AlphaDecay={0.02}
+            d3VelocityDecay={0.3}
+            backgroundColor="#0f172a00"
           />
         </div>
       </div>

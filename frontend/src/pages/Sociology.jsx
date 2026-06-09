@@ -122,7 +122,7 @@ const Sociology = () => {
                       <tr key={i} className="border-b border-border hover:bg-surface/30 transition-colors">
                         <td className="px-4 py-4 font-medium text-white">{corr.crime_type}</td>
                         <td className="px-4 py-4 text-muted flex items-center gap-1"><MapPin size={12}/> {corr.district}</td>
-                        <td className="px-4 py-4 text-blue-400 font-semibold">{corr.indicator.replace('_', ' ').title()}</td>
+                        <td className="px-4 py-4 text-blue-400 font-semibold">{corr.indicator.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}</td>
                         <td className="px-4 py-4 text-right">
                            <span className={`px-2 py-1 rounded text-xs font-bold ${corr.correlation_score > 70 ? 'bg-red-500/10 text-red-500' : corr.correlation_score > 40 ? 'bg-yellow-500/10 text-yellow-500' : 'bg-green-500/10 text-green-500'}`}>
                              {corr.correlation_score.toFixed(1)} / 100

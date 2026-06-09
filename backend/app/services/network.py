@@ -103,7 +103,9 @@ class NetworkAnalysisService:
         self.calculate_metrics()
         
         data = nx.node_link_data(self.graph)
-        # NetworkX node_link_data uses 'links', force-graph expects 'source' and 'target' which networkx provides
+        # NetworkX v3+ uses 'edges' by default, force-graph expects 'links'
+        if 'edges' in data:
+            data['links'] = data.pop('edges')
         
         associations = self.detect_hidden_associations()
         
