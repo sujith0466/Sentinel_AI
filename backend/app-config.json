@@ -1,5 +1,5 @@
 {
-	"command": "gunicorn -b 0.0.0.0:$X_ZOHO_CATALYST_LISTEN_PORT wsgi:app",
+	"command": "gunicorn --worker-class eventlet -b 0.0.0.0:$X_ZOHO_CATALYST_LISTEN_PORT wsgi:app",
 	"build_path": ".",
 	"stack": "python_3_11",
 	"env_variables": {},
