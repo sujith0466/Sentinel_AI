@@ -1,10 +1,10 @@
 {
-	"command": "gunicorn -b 0.0.0.0:$X_ZOHO_CATALYST_LISTEN_PORT wsgi:app",
-	"build_path": ".",
-	"stack": "python_3_11",
-	"env_variables": {},
-	"memory": 512,
-	"scripts": {
-		"build": "pip install -r requirements.txt"
-	}
+  "command": "sh -c 'gunicorn --worker-class eventlet -b 0.0.0.0:$X_ZOHO_CATALYST_LISTEN_PORT wsgi:app'",
+  "build_path": ".",
+  "stack": "python_3_11",
+  "env_variables": {},
+  "memory": 512,
+  "scripts": {
+    "build": "python -m pip install -r requirements.txt"
+  }
 }
